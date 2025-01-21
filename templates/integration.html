@@ -1,0 +1,146 @@
+<!-- templates/integration.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Razorpay Payment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+            margin: 20px;
+        }
+        .payment-details {
+            text-align: left;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .payment-details p {
+            margin: 10px 0;
+        }
+        button {
+            background-color: #528FF0;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        button:hover {
+            background-color: #3f7ad8;
+        }
+        #loading {
+            display: none;
+            margin-top: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Complete Your Payment</h1>
+        <div class="payment-details">
+            <p><strong>Amount:</strong> ₹{{ amount }}</p>
+            <p><strong>Contact:</strong> {{ phone }}</p>
+        </div>
+        <button id="payButton">Pay Now</button>
+        <div id="loading">Processing payment...</div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        const apiKey = "{{ api_key }}";
+        const amount = "{{ amount }}";
+        const phone = "{{ phone }}";
+
+        document.getElementById('payButton').addEventListener('click', async function() {
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                const response = await fetch(`/create_order/${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const order = await response.json();
+                
+                if (order.error) {
+                    throw new Error(order.error);
+                }
+                
+                const options = {
+                    key: apiKey,
+                    amount: order.amount,
+                    currency: order.currency,
+                    name: 'Your Company Name',
+                    description: 'Transaction',
+                    order_id: order.id,
+                    handler: async function(response) {
+                        try {
+                            const verifyResponse = await fetch(`/verify_payment/${apiKey}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_signature: response.razorpay_signature
+                                })
+                            });
+                            
+                            const verifyData = await verifyResponse.json();
+                            
+                            if (verifyData.status === 'success') {
+                                alert('Payment successful!');
+                            } else {
+                                alert('Payment verification failed!');
+                            }
+                        } catch (error) {
+                            alert('Error verifying payment: ' + error.message);
+                        }
+                    },
+                    prefill: {
+                        name: 'Customer Name',
+                        email: 'customer@example.com',
+                        contact: phone
+                    },
+                    theme: {
+                        color: '#528FF0'
+                    }
+                };
+
+                const paymentObject = new Razorpay(options);
+                paymentObject.open();
+            } catch (error) {
+                alert('Error creating order: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

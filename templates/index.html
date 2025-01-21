@@ -1,0 +1,246 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Razorpay Payment Integration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+            margin: 20px;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #528FF0;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        button:hover {
+            background-color: #3f7ad8;
+        }
+        #loading {
+            display: none;
+            margin-top: 10px;
+            color: #666;
+        }
+        .error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .success {
+            color: #28a745;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        #paymentSection {
+            display: none;
+        }
+        #credentialsSection {
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Payment Integration Setup</h1>
+        
+        <!-- Credentials Section -->
+        <div id="credentialsSection">
+            <h2>API Credentials</h2>
+            <div class="form-group">
+                <label for="keyId">Key ID:</label>
+                <input type="text" id="keyId" placeholder="Enter your Razorpay Key ID">
+            </div>
+            <div class="form-group">
+                <label for="keySecret">Key Secret:</label>
+                <input type="password" id="keySecret" placeholder="Enter your Razorpay Key Secret">
+            </div>
+            <button id="validateCredentials">Validate Credentials</button>
+            <div id="credentialsMessage"></div>
+        </div>
+
+        <!-- Payment Section -->
+        <div id="paymentSection">
+            <h2>Payment Details</h2>
+            <div class="form-group">
+                <label for="amount">Amount (₹):</label>
+                <input type="number" id="amount" min="1" step="0.01" placeholder="Enter amount">
+            </div>
+            <div class="form-group">
+                <label for="contact">Contact Number:</label>
+                <input type="tel" id="contact" pattern="[0-9]{10}" placeholder="Enter 10-digit mobile number" maxlength="10">
+            </div>
+            <button id="payButton">Pay Now</button>
+            <div id="loading">Processing payment...</div>
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        let validatedKeyId = '';
+        
+        // Validate credentials
+        document.getElementById('validateCredentials').addEventListener('click', async function() {
+            const keyId = document.getElementById('keyId').value.trim();
+            const keySecret = document.getElementById('keySecret').value.trim();
+            const messageElement = document.getElementById('credentialsMessage');
+            
+            if (!keyId || !keySecret) {
+                messageElement.className = 'error';
+                messageElement.textContent = 'Please enter both Key ID and Key Secret';
+                return;
+            }
+
+            try {
+                const response = await fetch('/set_credentials', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ key_id: keyId, key_secret: keySecret })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    messageElement.className = 'success';
+                    messageElement.textContent = 'Credentials validated successfully!';
+                    validatedKeyId = keyId;
+                    document.getElementById('paymentSection').style.display = 'block';
+                } else {
+                    messageElement.className = 'error';
+                    messageElement.textContent = data.message;
+                }
+            } catch (error) {
+                messageElement.className = 'error';
+                messageElement.textContent = 'Error validating credentials: ' + error.message;
+            }
+        });
+
+        // Handle payment
+        document.getElementById('payButton').addEventListener('click', async function() {
+            const amount = document.getElementById('amount').value;
+            const contact = document.getElementById('contact').value;
+
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+
+            if (!contact || !/^\d{10}$/.test(contact)) {
+                alert('Please enter a valid 10-digit contact number');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/create_order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        amount: amount,
+                        contact: contact
+                    })
+                });
+                
+                const order = await response.json();
+                
+                if (order.error) {
+                    throw new Error(order.error);
+                }
+                
+                const options = {
+                    key: validatedKeyId,
+                    amount: order.amount,
+                    currency: order.currency,
+                    name: 'Your Company Name',
+                    description: 'Test Transaction',
+                    order_id: order.id,
+                    handler: async function(response) {
+                        try {
+                            const verifyResponse = await fetch('/verify_payment', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_signature: response.razorpay_signature
+                                })
+                            });
+                            
+                            const verifyData = await verifyResponse.json();
+                            
+                            if (verifyData.status === 'success') {
+                                alert('Payment successful and verified!');
+                            } else {
+                                alert('Payment verification failed!');
+                            }
+                        } catch (error) {
+                            alert('Error verifying payment: ' + error.message);
+                        }
+                    },
+                    prefill: {
+                        name: 'Customer Name',
+                        email: 'customer@example.com',
+                        contact: contact
+                    },
+                    theme: {
+                        color: '#528FF0'
+                    }
+                };
+
+                const paymentObject = new Razorpay(options);
+                paymentObject.open();
+            } catch (error) {
+                alert('Error creating order: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
