@@ -75,10 +75,10 @@ Request body:
   "razorpay_key_id": "your_key_id",
   "razorpay_key_secret": "your_key_secret",
   "amount": 1000,
-  "phone": "9999999999"
+  "phone": "9876543210"
 }
 ```
-
+(Avoid using numbers like 9999999999
 Response:
 ```json
 {
