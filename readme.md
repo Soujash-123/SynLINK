@@ -1,181 +1,196 @@
-# SynLINK - Razorpay Integration Solution
+# Razorpay Payment Gateway API
 
-SynLINK is a versatile payment integration solution that provides both API and website-based methods to integrate Razorpay payments into your applications.
+A Flask-based API for integrating Razorpay payment gateway with support for Google Pay and card payments. This API creates payment links with unique IDs and provides endpoints to check payment status.
 
 ## Features
 
-- API-based integration with unique API keys for multiple applications
-- Website-based integration with simple credential management
-- Secure payment processing
-- Payment verification
-- Real-time order creation
-- Support for INR currency
+- Generate unique payment URLs with custom payment IDs
+- Support for multiple payment methods (Google Pay, cards)
+- Real-time payment status tracking
+- Automatic window closing after successful payment
+- Webhook support for payment status updates
+- Simple web interface for testing
 
-## Base URL
-```
-https://synlink.onrender.com
-```
+## Prerequisites
 
-## API Integration Guide
+- Python 3.6+
+- Flask
+- Razorpay account with API keys
 
-### 1. Initialize Integration
+## Installation
 
-Initialize a new integration and get a payment URL.
-
-```bash
-curl -X POST https://synlink.onrender.com/integrate-razorpay \
-  -H "Content-Type: application/json" \
-  -d '{
-    "api_key": "YOUR_RAZORPAY_KEY_ID",
-    "secret_key": "YOUR_RAZORPAY_KEY_SECRET",
-    "amount": "1000",
-    "phone": "9999999999"
-  }'
-```
-
-**Response:**
-```json
-{
-  "status": "success",
-  "payment_url": "https://synlink.onrender.com/payment/YOUR_RAZORPAY_KEY_ID"
-}
-```
-
-### 2. Create Order (API)
-
-Create a new order using your API key.
+1. Clone the repository or download the source code:
 
 ```bash
-curl -X POST https://synlink.onrender.com/create_order/YOUR_RAZORPAY_KEY_ID \
-  -H "Content-Type: application/json"
+git clone https://github.com/yourusername/razorpay-payment-gateway.git
+cd razorpay-payment-gateway
 ```
 
-**Response:**
-```json
-{
-  "id": "order_xxx",
-  "amount": 100000,
-  "currency": "INR",
-  "receipt": "receipt_YOUR_RAZORPAY_KEY_ID"
-}
-```
-
-### 3. Verify Payment (API)
-
-Verify a payment after completion.
+2. Install the required packages:
 
 ```bash
-curl -X POST https://synlink.onrender.com/verify_payment/YOUR_RAZORPAY_KEY_ID \
-  -H "Content-Type: application/json" \
-  -d '{
-    "razorpay_payment_id": "pay_xxx",
-    "razorpay_order_id": "order_xxx",
-    "razorpay_signature": "xxx"
-  }'
+pip install flask razorpay uuid
 ```
 
-## Website Integration Guide
+3. Create the directory structure:
 
-### 1. Set Credentials
-
-Set your Razorpay credentials for website usage.
-
-```bash
-curl -X POST https://synlink.onrender.com/set_credentials \
-  -H "Content-Type: application/json" \
-  -d '{
-    "key_id": "YOUR_RAZORPAY_KEY_ID",
-    "key_secret": "YOUR_RAZORPAY_KEY_SECRET"
-  }'
+```
+/your-project
+  /templates
+    index.html
+    payment.html
+    success.html
+    failure.html
+    error.html
+  app.py
 ```
 
-### 2. Create Order (Website)
+4. Place the provided files in their respective locations.
 
-Create a new order for your website.
+## Configuration
 
-```bash
-curl -X POST https://synlink.onrender.com/create_order \
-  -H "Content-Type: application/json" \
-  -d '{
-    "amount": "1000",
-    "email": "customer@example.com",
-    "contact": "9999999999"
-  }'
-```
+No additional configuration files are needed. The API uses the Razorpay credentials provided in the API calls.
 
-### 3. Verify Payment (Website)
+## Usage
 
-Verify a payment for your website.
+### Start the server
 
-```bash
-curl -X POST https://synlink.onrender.com/verify_payment \
-  -H "Content-Type: application/json" \
-  -d '{
-    "razorpay_payment_id": "pay_xxx",
-    "razorpay_order_id": "order_xxx",
-    "razorpay_signature": "xxx"
-  }'
-```
-
-## Response Codes
-
-- 200: Successful operation
-- 400: Bad request (missing or invalid parameters)
-- 401: Unauthorized (invalid credentials)
-- 500: Server error
-
-## Security Notes
-
-1. Always keep your API keys and secret keys secure
-2. Never expose your secret key in client-side code
-3. Always verify payments server-side
-4. Use HTTPS for all API calls
-
-## Implementation Notes
-
-- All amounts should be provided in INR
-- Phone numbers should be provided without country code
-- API credentials are stored temporarily in memory
-- Website credentials persist until the server restarts
-
-## Error Handling
-
-All endpoints return JSON responses with error details:
-
-```json
-{
-  "status": "error",
-  "message": "Error description"
-}
-```
-
-## Requirements
-
-- Razorpay account with API credentials
-- HTTPS enabled endpoint for payment verification
-- Valid email for payment notifications
-- Support for JSON requests/responses
-
-## Development Setup
-
-1. Clone the repository
-2. Install requirements:
-```bash
-pip install flask razorpay
-```
-3. Run the application:
 ```bash
 python app.py
 ```
 
-## Production Considerations
+The server will start on `http://localhost:5000` by default.
 
-1. Use environment variables for credentials
-2. Implement proper session management
-3. Add rate limiting
-4. Set up monitoring and logging
-5. Use a production-grade server instead of Flask's development server
+### API Endpoints
 
-## Support
+#### 1. Create Payment Link
 
-For support and feature requests, please open an issue in the repository or contact our support team.
+```
+POST /create_payment
+```
+
+Request body:
+```json
+{
+  "razorpay_key_id": "your_key_id",
+  "razorpay_key_secret": "your_key_secret",
+  "amount": 1000,
+  "phone": "9999999999"
+}
+```
+
+Response:
+```json
+{
+  "payment_id": "uuid-generated-payment-id",
+  "payment_url": "https://rzp.io/i/abcdefgh",
+  "razorpay_payment_id": "razorpay-payment-id",
+  "status": "created"
+}
+```
+
+#### 2. Check Payment Status
+
+```
+GET /check_payment_status/{payment_id}
+```
+
+Response:
+```json
+{
+  "payment_id": "uuid-generated-payment-id",
+  "razorpay_id": "razorpay-payment-id",
+  "status": "paid",
+  "amount": 1000,
+  "phone": "9999999999"
+}
+```
+
+#### 3. Webhook for Real-time Updates
+
+```
+POST /webhook
+```
+
+Configure this URL in your Razorpay dashboard to receive real-time payment updates.
+
+### Web Interface
+
+A simple web interface is available at the root URL (`/`) for testing the payment flow. You can:
+
+1. Create payment links
+2. Check payment status
+3. View API documentation
+
+## Payment Flow
+
+1. API receives a request to create a payment with amount and phone number
+2. A unique payment ID is generated and a Razorpay payment link is created
+3. The payment URL is returned to the client
+4. When opened, the payment URL shows the Razorpay payment interface with Google Pay and card payment options
+5. After payment completion, the user is redirected to a success or failure page
+6. The payment window automatically closes after successful payment
+7. The payment status can be checked via the status endpoint
+
+## In-Memory Storage
+
+The application uses an in-memory dictionary to store payment information. In a production environment, you should replace this with a persistent database.
+
+```python
+# Replace this:
+payment_records = {}
+
+# With a database solution like:
+# - SQLite for simple applications
+# - PostgreSQL/MySQL for production applications
+# - Redis for caching and quick lookup
+```
+
+## Security Considerations
+
+1. In a production environment, never expose your Razorpay Secret Key in frontend code
+2. Implement proper authentication for your API endpoints
+3. Use HTTPS for all communications
+4. Validate all incoming data
+5. Consider implementing rate limiting to prevent abuse
+
+## Customization
+
+You can customize the payment experience by:
+
+1. Modifying the HTML templates in the `/templates` directory
+2. Adjusting the CSS styles
+3. Adding additional payment options through the Razorpay dashboard
+4. Implementing email notifications after payment completion
+
+## Webhook Integration
+
+For reliable payment status updates, configure webhooks in your Razorpay dashboard:
+
+1. Log in to your Razorpay dashboard
+2. Go to Settings > Webhooks
+3. Add a new webhook with your server's URL: `https://your-domain.com/webhook`
+4. Select the event types to listen for (at minimum, `payment.authorized`)
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Payment creation fails**: Verify your Razorpay API keys
+2. **Callback URL not working**: Ensure your server is publicly accessible or use tools like ngrok for testing
+3. **Payment status not updating**: Check webhook configuration and server logs
+
+### Debug Mode
+
+The Flask application runs in debug mode by default. For production, set:
+
+```python
+if __name__ == '__main__':
+    app.run(debug=False)
+```
+
+## Acknowledgements
+
+- [Flask](https://flask.palletsprojects.com/)
+- [Razorpay](https://razorpay.com/)
+- [Bootstrap](https://getbootstrap.com/)
