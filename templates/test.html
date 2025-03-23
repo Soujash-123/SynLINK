@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Integration</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #74b9ff, #0984e3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: white;
+    }
+    .container {
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+    button {
+      background-color: #00cec9;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      margin: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #0984e3;
+    }
+    iframe {
+      margin-top: 20px;
+      width: 100%;
+      height: 400px;
+      border-radius: 8px;
+      border: none;
+    }
+    p {
+      font-size: 18px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fa-solid fa-credit-card"></i> Payment Integration</h1>
+    <button id="payButton">Proceed to Pay</button>
+    <div id="iframeContainer"></div>
+    <button id="verifyButton" style="display:none;">Verify Payment</button>
+    <p id="status"></p>
+  </div>
+
+  <script>
+    let paymentId = '';
+
+    document.getElementById('payButton').onclick = async function () {
+      const response = await fetch('/create_payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          razorpay_key_id: 'rzp_test_JrKAzmnInWh8vu',
+          razorpay_key_secret: 'R9wompUtizorFSSDUR5QIq95',
+          amount: 100,
+          phone: '9876543210',
+        }),
+      });
+
+      const data = await response.json();
+      paymentId = data.payment_id;
+
+      const iframe = document.createElement('iframe');
+      iframe.src = data.payment_url;
+      document.getElementById('iframeContainer').appendChild(iframe);
+      document.getElementById('verifyButton').style.display = 'block';
+    };
+
+    document.getElementById('verifyButton').onclick = async function () {
+      const statusResponse = await fetch(`/check_payment_status/${paymentId}`);
+      const statusData = await statusResponse.json();
+
+      if (statusData.status !== 'created') {
+        document.getElementById('status').innerText = '✅ Order Placed';
+        document.getElementById('iframeContainer').innerHTML = '';
+        document.getElementById('verifyButton').style.display = 'none';
+      } else {
+        document.getElementById('status').innerText = '⚡ Payment Pending. Please complete the payment.';
+      }
+    };
+  </script>
+</body>
+</html>

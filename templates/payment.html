@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Payment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .payment-container {
+            max-width: 500px;
+            width: 100%;
+            padding: 20px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: #6c63ff;
+            color: white;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        .payment-methods {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .payment-method-icons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .payment-method-icon {
+            width: 60px;
+            height: 40px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-primary {
+            background-color: #6c63ff;
+            border-color: #6c63ff;
+        }
+        .btn-primary:hover {
+            background-color: #5a52d5;
+            border-color: #5a52d5;
+        }
+        .g-pay-logo {
+            background-color: #000;
+            color: #fff;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .g-pay-logo span:first-child {
+            color: #4285F4;
+        }
+        .g-pay-logo span:nth-child(2) {
+            color: #EA4335;
+        }
+        .g-pay-logo span:nth-child(3) {
+            color: #FBBC05;
+        }
+        .g-pay-logo span:last-child {
+            color: #34A853;
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <div class="card">
+            <div class="card-header text-center">
+                <h3>Complete Your Payment</h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <h4>Amount: ₹<span id="paymentAmount">{{ amount }}</span></h4>
+                    <p>Payment ID: {{ payment_id }}</p>
+                </div>
+                
+                <div class="payment-methods">
+                    <p class="fw-bold">Supported Payment Methods:</p>
+                    <div class="payment-method-icons">
+                        <div class="payment-method-icon">
+                            <div class="g-pay-logo">
+                                <span>G</span><span>o</span><span>o</span><span>g</span>le Pay
+                            </div>
+                        </div>
+                        <div class="payment-method-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="20">
+                                <path fill="#ff5722" d="M32,10v28H16V10H32z"/>
+                                <path fill="#4caf50" d="M42,10v28H32V10H42z"/>
+                                <path fill="#ffc107" d="M16,10v28H6V10H16z"/>
+                            </svg>
+                        </div>
+                        <div class="payment-method-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="20">
+                                <path fill="#1565C0" d="M45,35c0,2.209-1.791,4-4,4H7c-2.209,0-4-1.791-4-4V13c0-2.209,1.791-4,4-4h34c2.209,0,4,1.791,4,4V35z"/>
+                                <path fill="#FFF" d="M15.186 19l-2.626 7.832c0 0-0.667-3.313-0.733-3.729-1.495-3.411-3.701-3.221-3.701-3.221L10.726 30v-0.002h3.161L18.258 19H15.186zM17.689 30L20.56 30 22.296 19 19.389 19zM38.008 19h-3.021l-4.71 11h2.852l0.588-1.571h3.596L37.619 30h2.613L38.008 19zM34.513 26.328l1.563-4.157 0.818 4.157H34.513zM26.369 22.206c0-0.606 0.498-1.057 1.926-1.057 0.928 0 1.991 0.674 1.991 0.674l0.466-2.309c0 0-1.358-0.515-2.691-0.515-3.019 0-4.576 1.444-4.576 3.272 0 3.306 3.979 2.853 3.979 4.551 0 0.291-0.231 0.964-1.888 0.964-1.662 0-2.759-0.609-2.759-0.609l-0.495 2.216c0 0 1.063 0.606 3.117 0.606 2.059 0 4.915-1.54 4.915-3.752C30.354 23.586 26.369 23.394 26.369 22.206z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <div id="razorpay-button"></div>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <small class="text-muted">Secure payment powered by Razorpay</small>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-open Razorpay checkout
+            var options = {
+                "key": "{{ razorpay_key_id }}",
+                "payment_link_id": "{{ razorpay_id }}",
+                "callback_url": window.location.origin + "/payment_callback/{{ payment_id }}",
+                "prefill": {},
+                "theme": {
+                    "color": "#6c63ff"
+                },
+                "modal": {
+                    "ondismiss": function() {
+                        window.location.href = window.location.origin;
+                    }
+                },
+                "config": {
+                    "display": {
+                        "blocks": {
+                            "gpay": {
+                                "name": "Pay with Google Pay",
+                                "priority": 1
+                            },
+                            "card": {
+                                "name": "Pay with Card",
+                                "priority": 2
+                            },
+                            "upi": {
+                                "name": "UPI Payment",
+                                "priority": 3
+                            }
+                        },
+                        "sequence": ["block.gpay", "block.card", "block.upi"],
+                        "preferences": {
+                            "show_default_blocks": true
+                        }
+                    }
+                }
+            };
+            
+            var rzp = new Razorpay(options);
+            rzp.open();
+            
+            // Add button for reopening if closed
+            document.getElementById('razorpay-button').innerHTML = 
+                '<button class="btn btn-primary btn-lg" id="rzp-button">Pay Now</button>';
+            
+            document.getElementById('rzp-button').onclick = function(e) {
+                rzp.open();
+                e.preventDefault();
+            };
+        });
+    </script>
+</body>
+</html>

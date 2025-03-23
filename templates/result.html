@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .result-container {
+            margin-top: 50px;
+            padding: 30px;
+            border-radius: 8px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .failure {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .payment-id {
+            margin-top: 20px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .back-button {
+            margin-top: 30px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .back-button:hover {
+            background-color: #0052a3;
+        }
+    </style>
+</head>
+<body>
+    <div class="result-container {% if status == 'success' %}success{% else %}failure{% endif %}">
+        {% if status == 'success' %}
+            <h1>Payment Successful!</h1>
+            <p>Your payment has been processed successfully.</p>
+        {% else %}
+            <h1>Payment Failed</h1>
+            <p>There was an issue processing your payment. Please try again.</p>
+        {% endif %}
+        
+        <div class="payment-id">
+            Payment ID: {{ payment_id }}
+        </div>
+    </div>
+    
+    <a href="/" class="back-button">Back to Payment Page</a>
+</body>
+</html>
