@@ -4,11 +4,16 @@ import json
 import os
 import uuid
 from datetime import datetime, timedelta
+from flask_cors import CORS
 
 app = Flask(__name__)
 
 # Dictionary to store payment information
 payment_records = {}
+
+# Enable CORS for all routes and origins
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 
 @app.route('/')
 def index():
