@@ -23,6 +23,7 @@ def create_payment():
         phone = data.get('phone')
         razorpay_key_id = data.get('razorpay_key_id')
         razorpay_key_secret = data.get('razorpay_key_secret')
+        redirect_url = data.get('redirect_url', '#')  # Add this line
         
         # Validate inputs
         if not all([amount, phone, razorpay_key_id, razorpay_key_secret]):
@@ -71,7 +72,8 @@ def create_payment():
             'status': 'created',
             'created_at': datetime.now().isoformat(),
             'razorpay_key_id': razorpay_key_id,
-            'razorpay_key_secret': razorpay_key_secret
+            'razorpay_key_secret': razorpay_key_secret,
+            'redirect_url': redirect_url  # Add this line
         }
         
         # Return payment URL and ID
@@ -112,7 +114,8 @@ def payment_page(payment_id):
                           payment_id=payment_id, 
                           amount=payment_info['amount'],
                           razorpay_key_id=payment_info['razorpay_key_id'],
-                          razorpay_id=payment_info['razorpay_id'])
+                          razorpay_id=payment_info['razorpay_id'],
+                          redirect_url=payment_info.get('redirect_url', '#'))  # Add this line
 
 @app.route('/check_payment_status/<payment_id>', methods=['GET'])
 def check_payment_status(payment_id):
@@ -166,7 +169,9 @@ def payment_callback(payment_id):
     
     # Redirect to a success/failure page based on payment status
     if payment_id in payment_records and payment_records[payment_id]['status'] == 'paid':
-        return render_template('success.html', payment_id=payment_id)
+        return render_template('success.html', 
+                             payment_id=payment_id,
+                             redirect_url=payment_records[payment_id].get('redirect_url', '#'))
     else:
         return render_template('failure.html', payment_id=payment_id)
 
@@ -191,4 +196,4 @@ def razorpay_webhook():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True,port="5001")
