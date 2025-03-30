@@ -2,3 +2,4 @@ flask
 razorpay
 setuptools
 gunicorn
+flask_cors
