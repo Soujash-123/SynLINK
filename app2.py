@@ -18,6 +18,9 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 @app.route('/')
 def index():
     return render_template('index.html')
+@app.route('/docs')
+def docs():
+    return render_template('docs.html')
 
 @app.route('/create_payment', methods=['POST'])
 def create_payment():
