@@ -1,181 +1,138 @@
-# SynLINK - Razorpay Integration Solution
+# Razorpay Payment Link Integration with Flask
 
-SynLINK is a versatile payment integration solution that provides both API and website-based methods to integrate Razorpay payments into your applications.
+This Flask application integrates Razorpay's Payment Link API to create, track, and verify payment links. It supports redirect-based callbacks and optional redirection to a custom URL after payment completion.
+
+## Live Demo
+Hosted at: [https://synlink-1.onrender.com](https://synlink-1.onrender.com)
+
+---
 
 ## Features
+- Create Razorpay payment links via API
+- Check payment status by payment ID
+- Web-based UI for payment tracking
+- Razorpay webhook integration for real-time updates
+- Auto-expiry of payment links after 30 minutes
+- Optional redirect after payment completion
+- CORS enabled for cross-origin requests
 
-- API-based integration with unique API keys for multiple applications
-- Website-based integration with simple credential management
-- Secure payment processing
-- Payment verification
-- Real-time order creation
-- Support for INR currency
+---
 
-## Base URL
-```
-https://synlink.onrender.com
-```
+## API Endpoints
 
-## API Integration Guide
+### `GET /`
+Renders the homepage (`index.html`).
 
-### 1. Initialize Integration
+### `POST /create_payment`
+Creates a Razorpay payment link.
 
-Initialize a new integration and get a payment URL.
-
-```bash
-curl -X POST https://synlink.onrender.com/integrate-razorpay \
-  -H "Content-Type: application/json" \
-  -d '{
-    "api_key": "YOUR_RAZORPAY_KEY_ID",
-    "secret_key": "YOUR_RAZORPAY_KEY_SECRET",
-    "amount": "1000",
-    "phone": "9999999999"
-  }'
-```
-
-**Response:**
+#### Request Body (JSON):
 ```json
 {
-  "status": "success",
-  "payment_url": "https://synlink.onrender.com/payment/YOUR_RAZORPAY_KEY_ID"
+  "amount": "500",
+  "phone": "9876543210",
+  "razorpay_key_id": "YOUR_KEY_ID",
+  "razorpay_key_secret": "YOUR_SECRET_KEY",
+  "redirect_url": "https://yourdomain.com/after-payment"  // Optional
 }
 ```
 
-### 2. Create Order (API)
-
-Create a new order using your API key.
-
-```bash
-curl -X POST https://synlink.onrender.com/create_order/YOUR_RAZORPAY_KEY_ID \
-  -H "Content-Type: application/json"
-```
-
-**Response:**
+#### Response:
 ```json
 {
-  "id": "order_xxx",
-  "amount": 100000,
-  "currency": "INR",
-  "receipt": "receipt_YOUR_RAZORPAY_KEY_ID"
+  "payment_id": "<UUID>",
+  "payment_url": "https://rzp.io/l/xyz",
+  "razorpay_payment_id": "plink_LWxyzabc123",
+  "status": "created"
 }
 ```
 
-### 3. Verify Payment (API)
-
-Verify a payment after completion.
-
+#### Example CURL Command:
 ```bash
-curl -X POST https://synlink.onrender.com/verify_payment/YOUR_RAZORPAY_KEY_ID \
+curl -X POST https://synlink-1.onrender.com/create_payment \
   -H "Content-Type: application/json" \
   -d '{
-    "razorpay_payment_id": "pay_xxx",
-    "razorpay_order_id": "order_xxx",
-    "razorpay_signature": "xxx"
+    "amount": "500",
+    "phone": "9876543210",
+    "razorpay_key_id": "YOUR_KEY_ID",
+    "razorpay_key_secret": "YOUR_SECRET_KEY",
+    "redirect_url": "https://yourdomain.com/after-payment"
   }'
 ```
 
-## Website Integration Guide
+### `GET /payment/<payment_id>`
+Renders the payment status page for the given `payment_id`.
 
-### 1. Set Credentials
+### `GET /check_payment_status/<payment_id>`
+Checks and returns the current status of the payment.
 
-Set your Razorpay credentials for website usage.
-
-```bash
-curl -X POST https://synlink.onrender.com/set_credentials \
-  -H "Content-Type: application/json" \
-  -d '{
-    "key_id": "YOUR_RAZORPAY_KEY_ID",
-    "key_secret": "YOUR_RAZORPAY_KEY_SECRET"
-  }'
-```
-
-### 2. Create Order (Website)
-
-Create a new order for your website.
-
-```bash
-curl -X POST https://synlink.onrender.com/create_order \
-  -H "Content-Type: application/json" \
-  -d '{
-    "amount": "1000",
-    "email": "customer@example.com",
-    "contact": "9999999999"
-  }'
-```
-
-### 3. Verify Payment (Website)
-
-Verify a payment for your website.
-
-```bash
-curl -X POST https://synlink.onrender.com/verify_payment \
-  -H "Content-Type: application/json" \
-  -d '{
-    "razorpay_payment_id": "pay_xxx",
-    "razorpay_order_id": "order_xxx",
-    "razorpay_signature": "xxx"
-  }'
-```
-
-## Response Codes
-
-- 200: Successful operation
-- 400: Bad request (missing or invalid parameters)
-- 401: Unauthorized (invalid credentials)
-- 500: Server error
-
-## Security Notes
-
-1. Always keep your API keys and secret keys secure
-2. Never expose your secret key in client-side code
-3. Always verify payments server-side
-4. Use HTTPS for all API calls
-
-## Implementation Notes
-
-- All amounts should be provided in INR
-- Phone numbers should be provided without country code
-- API credentials are stored temporarily in memory
-- Website credentials persist until the server restarts
-
-## Error Handling
-
-All endpoints return JSON responses with error details:
-
+#### Response:
 ```json
 {
-  "status": "error",
-  "message": "Error description"
+  "payment_id": "<UUID>",
+  "razorpay_id": "plink_LWxyzabc123",
+  "status": "paid",
+  "amount": "500",
+  "phone": "9876543210"
 }
 ```
 
-## Requirements
-
-- Razorpay account with API credentials
-- HTTPS enabled endpoint for payment verification
-- Valid email for payment notifications
-- Support for JSON requests/responses
-
-## Development Setup
-
-1. Clone the repository
-2. Install requirements:
+#### Example CURL Command:
 ```bash
-pip install flask razorpay
+curl https://synlink-1.onrender.com/check_payment_status/<payment_id>
 ```
-3. Run the application:
+
+### `GET /payment_callback/<payment_id>`
+Redirect/callback URL after Razorpay payment. Renders either `success.html` or `failure.html` depending on the final status.
+
+### `POST /webhook`
+Razorpay webhook endpoint for updating payment status in real-time.
+
+#### Example CURL Command:
+```bash
+curl -X POST https://synlink-1.onrender.com/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "payload": {
+      "payment_link": {
+        "entity": {
+          "id": "plink_LWxyzabc123",
+          "status": "paid"
+        }
+      }
+    }
+  }'
+```
+
+---
+
+## Razorpay Webhook Configuration
+To receive webhook updates:
+- Set the endpoint to: `https://synlink-1.onrender.com/webhook`
+- Select events like `payment_link.paid`, `payment_link.expired`, etc.
+
+---
+
+## Setup Instructions
+1. Clone this repository.
+2. Install dependencies:
+```bash
+pip install flask razorpay flask-cors
+```
+3. Run the app:
 ```bash
 python app.py
 ```
+4. Make requests to `http://localhost:5001` or deploy to a platform like Render.
 
-## Production Considerations
+---
 
-1. Use environment variables for credentials
-2. Implement proper session management
-3. Add rate limiting
-4. Set up monitoring and logging
-5. Use a production-grade server instead of Flask's development server
+## Notes
+- The payment records are stored in memory (`payment_records` dictionary). For production, replace with a database.
+- Razorpay key ID and secret are passed in the request for flexibility, but it's recommended to secure these via environment variables or backend storage.
 
-## Support
+---
 
-For support and feature requests, please open an issue in the repository or contact our support team.
+## License
+MIT License
+
