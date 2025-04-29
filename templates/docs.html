@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Razorpay Flask App Documentation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1, h2, h3 {
+      color: #005f73;
+    }
+    pre {
+      background: #eef;
+      padding: 10px;
+      overflow-x: auto;
+      border-left: 4px solid #005f73;
+    }
+    code {
+      font-family: Consolas, monospace;
+    }
+    .section {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    a {
+      color: #0a9396;
+    }
+  </style>
+</head>
+<body>
+  <h1>Razorpay Payment Link Integration with Flask</h1>
+
+  <div class="section">
+    <p>This Flask application integrates Razorpay's Payment Link API to create, track, and verify payment links. It supports redirect-based callbacks and optional redirection to a custom URL after payment completion.</p>
+    <p><strong>Live Demo:</strong> <a href="https://synlink-1.onrender.com" target="_blank">https://synlink-1.onrender.com</a></p>
+  </div>
+
+  <div class="section">
+    <h2>Features</h2>
+    <ul>
+      <li>Create Razorpay payment links via API</li>
+      <li>Check payment status by payment ID</li>
+      <li>Web-based UI for payment tracking</li>
+      <li>Razorpay webhook integration for real-time updates</li>
+      <li>Auto-expiry of payment links after 30 minutes</li>
+      <li>Optional redirect after payment completion</li>
+      <li>CORS enabled for cross-origin requests</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>API Endpoints</h2>
+    <h3>POST /create_payment</h3>
+    <pre><code>{
+  "amount": "500",
+  "phone": "9876543210",
+  "razorpay_key_id": "YOUR_KEY_ID",
+  "razorpay_key_secret": "YOUR_SECRET_KEY",
+  "redirect_url": "https://yourdomain.com/after-payment"
+}</code></pre>
+    <h4>CURL Example</h4>
+    <pre><code>curl -X POST https://synlink-1.onrender.com/create_payment \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": "500",
+    "phone": "9876543210",
+    "razorpay_key_id": "YOUR_KEY_ID",
+    "razorpay_key_secret": "YOUR_SECRET_KEY",
+    "redirect_url": "https://yourdomain.com/after-payment"
+  }'</code></pre>
+
+    <h3>GET /check_payment_status/&lt;payment_id&gt;</h3>
+    <h4>CURL Example</h4>
+    <pre><code>curl https://synlink-1.onrender.com/check_payment_status/&lt;payment_id&gt;</code></pre>
+
+    <h3>POST /webhook</h3>
+    <h4>CURL Example</h4>
+    <pre><code>curl -X POST https://synlink-1.onrender.com/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "payload": {
+      "payment_link": {
+        "entity": {
+          "id": "plink_LWxyzabc123",
+          "status": "paid"
+        }
+      }
+    }
+  }'</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>Setup Instructions</h2>
+    <ol>
+      <li>Clone the repository</li>
+      <li>Install dependencies:<pre><code>pip install flask razorpay flask-cors</code></pre></li>
+      <li>Run the app:<pre><code>python app.py</code></pre></li>
+      <li>Access it on <code>http://localhost:5001</code> or deploy to Render.</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2>Notes</h2>
+    <ul>
+      <li>Payment data is stored in-memory for demo purposes</li>
+      <li>Use secure storage for Razorpay credentials in production</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>License</h2>
+    <p>MIT License</p>
+  </div>
+</body>
+</html>
