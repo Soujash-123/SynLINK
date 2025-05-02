@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: url('/static/syntalix-logo.jpeg') center/cover fixed;
+        }
+        .logo {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 180px;
+            height: auto;
+            z-index: 1000;
+        }
+        .payment-container {
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            margin: 60px auto;
+            position: relative;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .payment-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .bottom-right-logo {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: auto;
+            z-index: 1000;
+        }
+        .footer {
+            position: fixed;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            color: #333;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <img src="/static/synlink.png" alt="Synlink Logo" class="logo">
+    <div class="payment-container">
+        <iframe src="{{ payment_url }}" class="payment-iframe" allow="payment"></iframe>
+    </div>
+    <img src="/static/syntalix-logo-removebg-preview.png" alt="Syntalix Logo" class="bottom-right-logo">
+    <div class="footer">
+        Developed by Syntalix
+    </div>
+</body>
+</html>

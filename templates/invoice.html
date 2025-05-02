@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Invoice</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+        .header {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+        .logo {
+            width: 180px;
+            height: auto;
+        }
+        .iframe-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 80px;
+        }
+        .payment-iframe {
+            width: 100%;
+            max-width: 800px;
+            height: 80vh;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="/static/synlink.png" alt="Synlink Logo" class="logo">
+    </div>
+    <div class="iframe-container">
+        <iframe src="{{ payment_url }}" class="payment-iframe" allow="payment"></iframe>
+    </div>
+</body>
+</html>
