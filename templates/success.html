@@ -42,7 +42,7 @@
         const redirectUrl = "{{ redirect_url }}";
         if (redirectUrl && redirectUrl !== '#') {
             setTimeout(() => {
-                window.location.href = redirectUrl;
+                window.top.location.href = redirectUrl;
             }, 2000); // Redirect after 2 seconds
         }
     </script>

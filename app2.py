@@ -245,11 +245,12 @@ def payment_callback(payment_id):
         except Exception as e:
             print(f"Error in payment callback: {str(e)}")
     
-    # Redirect based on status
-    if transaction and transaction.get('status') == 'paid':
+    # Re-fetch transaction to get the latest status after update
+    updated_transaction = transactions_collection.find_one({'payment_id': payment_id})
+    if updated_transaction and updated_transaction.get('status') == 'paid':
         return render_template('success.html', 
                              payment_id=payment_id,
-                             redirect_url=transaction.get('redirect_url', '#'))
+                             redirect_url=updated_transaction.get('redirect_url', '#'))
     else:
         return render_template('failure.html', payment_id=payment_id)
 
